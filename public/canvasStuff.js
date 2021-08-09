@@ -9,11 +9,13 @@ player.locX = Math.floor(500*Math.random() + 10);
 player.locY = Math.floor(500*Math.random() + 10);
 
 function draw() {
-    // clear the screen out tos the old stuff is gone from the last frame
-    context.clearRect(0,0, canvas.width, canvas.height);
+
     // reset the translation to the default b/c
     // context.translate() is cumulative
     context.setTransform(1,0,0,1,0,0);
+
+    // clear the screen out tos the old stuff is gone from the last frame
+    context.clearRect(0,0, canvas.width, canvas.height);
 
     // clamp the camera to the player
     const camX = -player.locX + canvas.width/2
@@ -32,13 +34,20 @@ function draw() {
     // arg4 = where to start on the circle in radians, 0 = 3:00
     // arg5 = where to stop in radians
     context.arc(player.locX, player.locY, 10, 0, Math.PI * 2);
-    context.arc(200,200, 10, 0, Math.PI * 2);
+
     // fill() fills the circle in
     context.fill();
     context.lineWidth = 3;
     context.strokeStyle = 'rgb(0,255,0)';
     // this puts a border around the circle
     context.stroke();
+
+    orbs.forEach((orb) => {
+        context.beginPath();
+        context.fillStyle = orb.color;
+        context.arc(orb.locX, orb.locY, orb.radius, 0,Math.PI * 2);
+        context.fill();
+    })
 
     // this recursively calls the draw function forever at whatever framerate
     // the browser is capable of running at
