@@ -31,4 +31,4 @@ canvas.addEventListener('mousemove',(event)=>{
         player.locX += speed * xV;
         player.locY -= speed * yV;
     }    
-})
+});
