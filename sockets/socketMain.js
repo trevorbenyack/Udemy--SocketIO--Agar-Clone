@@ -11,13 +11,13 @@ const Orb = require('./classes/Orb');
 let orbs = [];
 let players = [];
 let settings = {
-    defaultOrbs: 500,
+    defaultOrbs: 5000,
     defaultSpeed: 6,
     defaultSize: 6,
     // as the player gets bigger, the zoom needs to go out
     defaultZoom: 1.5,
-    worldWidth: 500,
-    worldHeight: 500
+    worldWidth: 5000,
+    worldHeight: 5000
 }
 
 initGame();
@@ -62,7 +62,7 @@ io.sockets.on('connect', (socket) => {
 
     }); // end socket.on('init', ...)
 
-    // The server sent over a tick, so that means we know what direction
+    // The client sent over a tick, so that means we know what direction
     // to move the socket/player
     socket.on('tick', (data) => {
 
@@ -87,6 +87,20 @@ io.sockets.on('connect', (socket) => {
             }
         }
 
+        let capturedOrb = checkForOrbCollisions(player.playerData, player.playerConfig, orbs, settings);
+        capturedOrb.then((data) => {
+            // A collision happened
+            // emit to all sockets the orb to replace
+            // This will send over the orb index as well as the orb data itself
+            const orbData = {
+                orbIndex: data,
+                newOrb: orbs[data]
+            }
+            console.log(orbData);
+            io.sockets.emit('orbSwitch', orbData);
+        }).catch(() => {
+            // No collision happened
+        });
     });
 })
 
