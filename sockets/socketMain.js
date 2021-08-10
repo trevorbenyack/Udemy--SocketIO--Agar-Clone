@@ -11,16 +11,25 @@ const Orb = require('./classes/Orb');
 let orbs = [];
 let players = [];
 let settings = {
-    defaultOrbs: 5000,
+    defaultOrbs: 50,
     defaultSpeed: 6,
     defaultSize: 6,
     // as the player gets bigger, the zoom needs to go out
     defaultZoom: 1.5,
-    worldWidth: 5000,
-    worldHeight: 5000
+    worldWidth: 500,
+    worldHeight: 500
 }
 
 initGame();
+
+// issue a message to EVERY connected socket at 30FPS
+setInterval(() => {
+    if(players.length > 0) {
+        io.to('game').emit('tock', {
+            players
+        });
+    }
+}, 33);
 
 io.sockets.on('connect', (socket) => {
     let player = {};
@@ -44,13 +53,10 @@ io.sockets.on('connect', (socket) => {
 
         // issue a message to EVERY connected socket at 30FPS
         setInterval(() => {
-            if(player.tickSent) {
-                io.to('game').emit('tock', {
-                    players,
-                    playerX: player.playerData.locX,
-                    playerY: player.playerData.locY
-                })
-            }
+            socket.emit('tickTock', {
+                playerX: player.playerData.locX,
+                playerY: player.playerData.locY
+            });
         }, 33);
 
         socket.emit('initReturn', {
@@ -87,6 +93,7 @@ io.sockets.on('connect', (socket) => {
             }
         }
 
+        // ORB COLLISION!!!!
         let capturedOrb = checkForOrbCollisions(player.playerData, player.playerConfig, orbs, settings);
         capturedOrb.then((data) => {
             // A collision happened
@@ -97,12 +104,41 @@ io.sockets.on('connect', (socket) => {
                 newOrb: orbs[data]
             }
             console.log(orbData);
+
+            // every socket needs to know the leaderBoard has changed
+            io.sockets.emit('updateLeaderBoard', getLeaderBoard());
             io.sockets.emit('orbSwitch', orbData);
         }).catch(() => {
             // No collision happened
         });
+
+        // PLAYER COLLISION!!!
+        let playerDeath = checkForPlayerCollisions(player.playerData, player.playerConfig, players, player.socketId);
+        playerDeath.then((data) => {
+            console.log("Player Collision!!!");
+            // every socket needs to know the leaderBoard has changed
+            io.sockets.emit('updateLeaderBoard', getLeaderBoard());
+            io.sockets.emit('orbSwitch', orbData);
+        }).catch(() => {
+
+        })
     });
-})
+});
+
+function getLeaderBoard() {
+    // sort players in desc order
+    players.sort((a,b) => {
+       return b.score - a.score;
+    });
+
+    let leaderBoard = players.map((curPlayer) => {
+        return {
+            name: curPlayer.name,
+            score: curPlayer.score
+        }
+    })
+    return leaderBoard;
+}
 
 // run at the beginning of a new game
 function initGame(){
