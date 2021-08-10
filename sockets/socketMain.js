@@ -118,11 +118,32 @@ io.sockets.on('connect', (socket) => {
             console.log("Player Collision!!!");
             // every socket needs to know the leaderBoard has changed
             io.sockets.emit('updateLeaderBoard', getLeaderBoard());
-            io.sockets.emit('orbSwitch', orbData);
+            // a player was absorbed, let everyone know!
+            io.sockets.emit('playerDeath', data);
         }).catch(() => {
 
         })
     });
+
+    socket.on('disconnect', (data) => {
+        // find out who just left.... which player in players
+        // make sure the player exists
+        if(player.playerData) {
+            players.forEach((currPlayer, i) => {
+                if (currPlayer.uid === player.playerData.uid) {
+                    players.splice(i, 1);
+                    io.sockets.emit('updateLeaderBoard', getLeaderBoard());
+                }
+            });
+            const updateStats = `
+            UPDATE stats
+                SET highScore = CASE WHEN highScore < ? THEN ? ELSE highScore END,
+                mostOrbs = CASE WHEN mostOrbs < ? THEN ? ELSE mostOrbs END,
+                mostPlayers = CASE WHEN mostPlayers < ? THEN ? ELSE mostPlayers END
+            WHERE username = ?
+        `
+        }
+    })
 });
 
 function getLeaderBoard() {
