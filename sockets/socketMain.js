@@ -1,5 +1,7 @@
 // This is where all of our main socket stuff will go
 const io = require('../servers').io;
+const checkForOrbCollisions = require('./checkCollisions').checkForOrbCollisions;
+const checkForPlayerCollisions = require('./checkCollisions').checkForPlayerCollisions;
 
 // ==============CLASSES=================
 const Player = require('./classes/Player');
@@ -94,4 +96,4 @@ function initGame(){
         orbs.push(new Orb(settings));
     }
 }
-module.exports = io;
+module.exports = io
