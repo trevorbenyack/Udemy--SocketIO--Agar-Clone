@@ -21,8 +21,14 @@ let settings = {
 initGame();
 
 io.sockets.on('connect', (socket) => {
+    let player = {};
+    player.tickSent = false;
+
     // a player has connected
     socket.on('init', (data) => {
+        // add the player to the game namespace
+        socket.join('game');
+
         // maker a playerConfig object
         let playerConfig = new PlayerConfig(settings);
 
@@ -32,16 +38,54 @@ io.sockets.on('connect', (socket) => {
 
         // The server manages this one object
         // make a master player object to hold both
-        let player = new Player(socket.id, playerConfig, playerData);
+        player = new Player(socket.id, playerConfig, playerData);
+
+        // issue a message to EVERY connected socket at 30FPS
+        setInterval(() => {
+            if(player.tickSent) {
+                io.to('game').emit('tock', {
+                    players,
+                    playerX: player.playerData.locX,
+                    playerY: player.playerData.locY
+                })
+            }
+        }, 33);
 
         socket.emit('initReturn', {
             orbs
         })
 
         // This will add will new player onto the Players[]
-        players.push(playerData);
+        players.push(playerData)
+
     }); // end socket.on('init', ...)
 
+    // The server sent over a tick, so that means we know what direction
+    // to move the socket/player
+    socket.on('tick', (data) => {
+
+        player.tickSent = true;
+
+        let speed = player.playerConfig.speed;
+
+        // update the playerConfig object with the new direction in data
+        // and at the same time create a local variable with this callback
+        // for readability
+        let xV = player.playerConfig.xVector = data.xVector;
+        let yV = player.playerConfig.yVector = data.yVector
+
+        if(data.xVector && data.xVector) {
+            if((player.playerData.locX < 5 && player.playerConfig.xVector < 0) || (player.playerData.locX > settings.worldWidth) && (xV > 0)){
+                player.playerData.locY -= speed * yV;
+            }else if((player.playerData.locY < 5 && yV > 0) || (player.playerData.locY > settings.worldHeight) && (yV < 0)){
+                player.playerData.locX += speed * xV;
+            }else{
+                player.playerData.locX += speed * xV;
+                player.playerData.locY -= speed * yV;
+            }
+        }
+
+    });
 })
 
 // run at the beginning of a new game

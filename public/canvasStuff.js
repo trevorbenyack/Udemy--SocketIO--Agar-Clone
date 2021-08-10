@@ -2,8 +2,6 @@
 // ===================================
 // =========DRAWING===================
 // ===================================
-player.locX = Math.floor(500*Math.random() + 10);
-player.locY = Math.floor(500*Math.random() + 10);
 
 function draw() {
 
@@ -21,24 +19,28 @@ function draw() {
     // translate allows us to move the canvas around
     context.translate(camX, camY);
 
-    // context is a 2d thing to draw on the canvas
-    // beginPath() tells the context that drawing is about ot begin
-    context.beginPath();
-    context.fillStyle = "rgb(255,0,0)";
-    // arc() gives us the ability to draw an arc on the canvas
-    // arg1,2 = x,y of the center of the arc
-    // arg3 = radius of the arc/circle
-    // arg4 = where to start on the circle in radians, 0 = 3:00
-    // arg5 = where to stop in radians
-    context.arc(player.locX, player.locY, 10, 0, Math.PI * 2);
+    // draw all the players
+    players.forEach((p) => {
+        // context is a 2d thing to draw on the canvas
+        // beginPath() tells the context that drawing is about ot begin
+        context.beginPath();
+        context.fillStyle = p.color;
+        // arc() gives us the ability to draw an arc on the canvas
+        // arg1,2 = x,y of the center of the arc
+        // arg3 = radius of the arc/circle
+        // arg4 = where to start on the circle in radians, 0 = 3:00
+        // arg5 = where to stop in radians
+        context.arc(p.locX, p.locY, p.radius, 0, Math.PI * 2);
 
-    // fill() fills the circle in
-    context.fill();
-    context.lineWidth = 3;
-    context.strokeStyle = 'rgb(0,255,0)';
-    // this puts a border around the circle
-    context.stroke();
+        // fill() fills the circle in
+        context.fill();
+        context.lineWidth = 3;
+        context.strokeStyle = 'rgb(0,255,0)';
+        // this puts a border around the circle
+        context.stroke();
+    })
 
+    // draw all the orbs
     orbs.forEach((orb) => {
         context.beginPath();
         context.fillStyle = orb.color;
@@ -67,21 +69,12 @@ canvas.addEventListener('mousemove',(event)=>{
     }else if(angleDeg >= -180 && angleDeg < -90){
         xVector = (angleDeg+90)/90;
         yVector = (1 + ((angleDeg+90)/90));
-    }else if(angleDeg < 0 && angleDeg >= -90){
-        xVector = (angleDeg+90)/90;
-        yVector = (1 - ((angleDeg+90)/90));
+    }else if(angleDeg < 0 && angleDeg >= -90) {
+        xVector = (angleDeg + 90) / 90;
+        yVector = (1 - ((angleDeg + 90) / 90));
     }
 
-    speed = 10
-    xV = xVector;
-    yV = yVector;
+    player.xVector = xVector;
+    player.yVector = yVector;
 
-    if((player.locX < 5 && player.xVector < 0) || (player.locX > 500) && (xV > 0)){
-        player.locY -= speed * yV;
-    }else if((player.locY < 5 && yV > 0) || (player.locY > 500) && (yV < 0)){
-        player.locX += speed * xV;
-    }else{
-        player.locX += speed * xV;
-        player.locY -= speed * yV;
-    }
-});
+})

@@ -2,9 +2,13 @@
 
 class PlayerConfig {
     constructor(settings) {
+
+        // Where the user wants to go
         this.xVector = 0;
         this.yVector = 0;
-        this.speed = settings.speed;
+
+        // The user's speed
+        this.speed = settings.defaultSpeed;
         this.zoom = settings.defaultZoom
     }
 }
